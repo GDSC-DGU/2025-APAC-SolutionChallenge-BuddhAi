@@ -11,7 +11,7 @@
     <th> 안성우 <a href="https://github.com/aeeengsungwoo"><br/><img src="https://img.shields.io/badge/Github-181717?style=flat-square&logo=Github&logoColor=white"/></a></th>
     <th> 엄태우 <a href="https://github.com/teom142"><br/><img src="https://img.shields.io/badge/Github-181717?style=flat-square&logo=Github&logoColor=white"/></a></th>
     <tr>
-    <td> 팀원 소개 </td>
+    <td> 소개 </td>
     	<td>
         <img width="200" alt="IMG_1293" src="https://avatars.githubusercontent.com/u/127061738?v=4" />
       </td>
