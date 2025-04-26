@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Mind Cursor - Hands-Free Web Control",
+  "version": "1.0.0",
+  "description": "A Chrome extension that empowers users with limited mobility to navigate and interact with the web using facial gestures and voice commands.",
+  "icons": {
+    "16": "icons/logo.png",
+    "48": "icons/logo.png",
+    "128": "icons/logo.png"
+  },
+  "action": {
+    "default_title": "Open Mind Cursor"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "permissions": ["sidePanel", "tabs"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": ["<all_urls>"]
+}
