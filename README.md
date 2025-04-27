@@ -1,4 +1,4 @@
-## 👩🏻‍💻 BuddahAi Developers 🧑🏻‍💻
+## 👩🏻‍💻 BuddhAi Developers 🧑🏻‍💻
 
 <br/>
 
