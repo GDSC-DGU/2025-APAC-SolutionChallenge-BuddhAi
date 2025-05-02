@@ -12,8 +12,8 @@ export default function CommonIcons({ isGazeActive, isVoiceActive, isHelpActive 
         <img
           src={`/icons/${isGazeActive ? "eye-on" : "eye-off"}.svg`}
           alt="Gaze Icon"
-          width={50}
-          height={50}
+          width={24}
+          height={24}
         />
       </div>
 
@@ -22,8 +22,8 @@ export default function CommonIcons({ isGazeActive, isVoiceActive, isHelpActive 
         <img
           src={`/icons/${isVoiceActive ? "mic-on" : "mic-off"}.svg`}
           alt="Voice Icon"
-          width={50}
-          height={50}
+          width={24}
+          height={24}
         />
       </div>
 
@@ -32,8 +32,8 @@ export default function CommonIcons({ isGazeActive, isVoiceActive, isHelpActive 
         <img
           src={`/icons/${isHelpActive ? "help-on" : "help-off"}.svg`}
           alt="Help Icon"
-          width={50}
-          height={50}
+          width={24}
+          height={24}
         />
       </div>
     </>
