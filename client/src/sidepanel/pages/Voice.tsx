@@ -1,49 +1,18 @@
-import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
-import { startSpeechRecognition } from './voice/hooks/useSpeechRecognition';
+import * as S from './Voice.styles';
+import WaveMicResponsive from '../../components/WaveMicResponsive';
 
 export default function Voice() {
-  const navigate = useNavigate();
-
-  // 새 창으로 마이크 권한 요청 페이지 열기
-  const openPermissionPage = () => {
-    const url = chrome.runtime.getURL("permission/index.html");
-    window.open(url, "_blank", "width=500,height=600");
-    console.log("[Voice] 마이크 권한 요청 페이지 열기:", url);
-  };
-
-  // 메시지 리스너 등록
-  useEffect(() => {
-    const handlePermissionMessage = (message: any) => {
-      console.log("[Voice] 메시지 수신:", message)
-      if (message.type === "PERMISSION_GRANTED") {
-        console.log("Microphone permission granted!");
-        startSpeechRecognition();
-      } else if (message.type === "PERMISSION_DENIED") {
-        console.warn("Microphone permission denied.");
-        alert("마이크 권한이 필요합니다.");
-      }
-    };
-
-    chrome.runtime.onMessage.addListener(handlePermissionMessage);
-
-    return () => {
-      chrome.runtime.onMessage.removeListener(handlePermissionMessage);
-    };
-  }, []);
-
   return (
-    <div style={{ padding: '16px' }}>
-      <h2>Voice Control</h2>
-      <p>Press the button to request microphone access.</p>
-
-      <button onClick={openPermissionPage} style={{ marginBottom: '16px' }}>
-        Request Microphone Permission
-      </button>
-
-      <br />
-
-      <button onClick={() => navigate(-1)}> Go Back</button>
-    </div>
+    <S.Container>
+      <S.TextBox>
+        <S.Text>
+          <S.Spoken>Go to the </S.Spoken>
+          <S.Suggested>official NASA website.</S.Suggested>
+        </S.Text>
+      </S.TextBox>
+      <S.WaveWrapper>
+        <WaveMicResponsive isActive={true} />
+      </S.WaveWrapper>
+    </S.Container>
   );
 }
