@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { startSpeechRecognition } from './voice/hooks/useSpeechRecognition';
 
 export default function Voice() {
   const navigate = useNavigate();
@@ -8,15 +9,16 @@ export default function Voice() {
   const openPermissionPage = () => {
     const url = chrome.runtime.getURL("permission/index.html");
     window.open(url, "_blank", "width=500,height=600");
+    console.log("[Voice] 마이크 권한 요청 페이지 열기:", url);
   };
 
   // 메시지 리스너 등록
   useEffect(() => {
     const handlePermissionMessage = (message: any) => {
+      console.log("[Voice] 메시지 수신:", message)
       if (message.type === "PERMISSION_GRANTED") {
         console.log("Microphone permission granted!");
-        // TODO: 음성 인식 로직 연결
-        // startSpeechRecognition();
+        startSpeechRecognition();
       } else if (message.type === "PERMISSION_DENIED") {
         console.warn("Microphone permission denied.");
         alert("마이크 권한이 필요합니다.");
