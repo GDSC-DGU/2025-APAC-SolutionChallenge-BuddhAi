@@ -1,7 +1,24 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Gaze() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = '/webgazer.js';
+    script.async = true;
+    script.onload = () => {
+      if (window.webgazer) {
+        window.webgazer.begin();
+      }
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   return (
     <div style={{ padding: '16px' }}>
