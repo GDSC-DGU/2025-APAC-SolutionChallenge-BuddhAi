@@ -5,3 +5,10 @@ chrome.runtime.onInstalled.addListener(() => {
     openPanelOnActionClick: true,
   });
 });
+
+// 메시지 리스너 등록
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.type === "PERMISSION_GRANTED" || message.type === "PERMISSION_DENIED") {
+    chrome.runtime.sendMessage(message);
+  }
+});
