@@ -69,6 +69,28 @@ def slice_html(html, position) -> str:
         container.append(el)
     return str(container)
 
+def slice_html_naive(html) -> str:
+    soup = BeautifulSoup(html, "html.parser")
+
+    # 1) <script>, <style>, <link>, <noscript>, <meta>, <svg> 제거
+    for tag in soup(["script", "style", "link", "noscript", "meta", "svg"]):
+        tag.decompose()
+
+    # 2) 필요한 속성(class, id, name, type, value, aria-* 등)을 남기고 나머지 속성 제거
+    for el in soup.find_all(True):
+        # 남겨야 할 속성: class, id, name, type, value, aria-*, data-*
+        attrs_to_keep = ["class", "id", "name", "type", "value"]
+
+        # aria-*와 data-* 속성도 유용할 수 있음
+        attrs_to_keep.extend([attr for attr in el.attrs if attr.startswith("aria-") or attr.startswith("data-")])
+
+        # 모든 속성 제거, 지정된 속성만 남김
+        for attr in list(el.attrs):
+            if attr not in attrs_to_keep:
+                del el[attr]
+
+    return str(soup)
+
 def html_rag(html):
     prompt = f"""
     **Html**: {html}
@@ -114,7 +136,7 @@ def html_dom(html, file):
     myfile = client.files.upload(file=tmp_path)
 
     clean_html = client.models.generate_content(
-        model=MODEL_NAME, contents=[html_rag(html), myfile]
+        model=MODEL_NAME2, contents=[html_rag(html), myfile]
     )
 
     # print(clean_html.text)
@@ -175,7 +197,7 @@ def estimate_html_region(commandFile, imgFile):
 
     # LLM 프롬프트와 이미지 전달
     estimate_position = client.models.generate_content(
-        model=MODEL_NAME,
+        model=MODEL_NAME2,
         contents=[
             estimate_button_position_prompt(),
             {"inline_data": {"mime_type": "image/png", "data": img_data}},
