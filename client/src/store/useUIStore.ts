@@ -1,19 +1,19 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
-type UIState = {
+interface UIState {
   isGazeActive: boolean;
   isVoiceActive: boolean;
   isHelpActive: boolean;
-  setGazeActive: (value: boolean) => void;
-  setVoiceActive: (value: boolean) => void;
-  setHelpActive: (value: boolean) => void;
-};
+  toggleGaze: () => void;
+  toggleVoice: () => void;
+  toggleHelp: () => void;
+}
 
 export const useUIStore = create<UIState>((set) => ({
   isGazeActive: false,
   isVoiceActive: false,
   isHelpActive: false,
-  setGazeActive: (value) => set({ isGazeActive: value }),
-  setVoiceActive: (value) => set({ isVoiceActive: value }),
-  setHelpActive: (value) => set({ isHelpActive: value }),
+  toggleGaze: () => set((state) => ({ isGazeActive: !state.isGazeActive })),
+  toggleVoice: () => set((state) => ({ isVoiceActive: !state.isVoiceActive })),
+  toggleHelp: () => set((state) => ({ isHelpActive: !state.isHelpActive })),
 }));
