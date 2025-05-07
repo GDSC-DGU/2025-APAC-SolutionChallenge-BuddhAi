@@ -45,24 +45,40 @@ export default function WaveMicResponsive({ isActive }: Props) {
     const dataArray = new Uint8Array(bufferLength);
 
     const draw = () => {
-      analyser.getByteFrequencyData(dataArray);
+    analyser.getByteFrequencyData(dataArray);
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      ctx.beginPath();
-      ctx.moveTo(0, canvas.height);
+    const step = canvas.width / bufferLength;
 
-      const step = canvas.width / bufferLength;
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height);
 
-      for (let i = 0; i < bufferLength; i++) {
-        const value = dataArray[i] / 255;
-        const y = canvas.height - value * canvas.height * 0.8;
-        ctx.lineTo(i * step, y);
-      }
+    let prevX = 0;
+    let prevY = canvas.height;
+
+    for (let i = 0; i < bufferLength; i++) {
+      const value = dataArray[i] / 255;
+      const x = i * step;
+      const y = canvas.height - value * canvas.height * 0.8;
+
+      const ctrlX = (prevX + x) / 2;
+      const ctrlY = (prevY + y) / 2;
+
+      ctx.quadraticCurveTo(prevX, prevY, ctrlX, ctrlY);
+
+      prevX = x;
+      prevY = y;
+    }
 
       ctx.lineTo(canvas.width, canvas.height);
       ctx.closePath();
-      ctx.fillStyle = 'rgba(176, 32, 211, 0.8)';
+      ctx.fill();
+
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+      gradient.addColorStop(0, getComputedStyle(document.documentElement).getPropertyValue('--color-purple').trim());
+      gradient.addColorStop(1, getComputedStyle(document.documentElement).getPropertyValue('--color-blue').trim());
+      ctx.fillStyle = gradient;
       ctx.fill();
 
       const id = requestAnimationFrame(draw);
@@ -80,7 +96,7 @@ export default function WaveMicResponsive({ isActive }: Props) {
       width={300}
       height={80}
       style={{
-        width: '100%',
+        width: '150%',
         height: '80px',
         position: 'absolute',
         bottom: 0,
