@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600;700&display=swap');
+:root {
+    /* === Font === */
+    --font-main: 'Inter', sans-serif;
+
+    /* === Color Palette === */
+    --color-purple: #B020D3;
+    /* 연보라 */
+    --color-blue: #0970E7;
+    /* 연파랑 */
+    --color-gray-light: #F5F5F5;
+    /* 연회색 배경 */
+    --color-yellow: #FFD93B;
+    /* 노랑 */
+
+    /* 투명도 조절은 rgba()나 opacity로 따로 처리 */
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-main);
+    background-color: #FFFFFF;
+    color: #212121;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
