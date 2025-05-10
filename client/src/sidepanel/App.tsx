@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Choice from './pages/Choice';
 import Voice from './pages/Voice';
-import Gaze from './pages/Gaze';
+import Gaze from './pages/gaze/Gaze';
 
 export default function App() {
   return (
