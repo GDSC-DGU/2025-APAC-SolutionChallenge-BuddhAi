@@ -1,11 +1,11 @@
 import { useRef, useState, useEffect } from 'react';
-import { useGaze } from './hooks/useGaze';
+import { useGaze } from '../../hooks/useGaze';
 import {
   Container,
   VideoWrapper,
   StyledVideo,
   StatusIndicator,
-} from './Gaze.css';
+} from './Gaze.styles';
 
 export default function Gaze() {
   const videoRef = useRef<HTMLVideoElement>(null);
