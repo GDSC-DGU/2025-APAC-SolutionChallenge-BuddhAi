@@ -8,14 +8,18 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // 메시지 리스너 등록
 chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === "PERMISSION_GRANTED" || message.type === "PERMISSION_DENIED") {
+  if (
+    message.type === 'PERMISSION_GRANTED' ||
+    message.type === 'PERMISSION_DENIED'
+  ) {
     chrome.runtime.sendMessage(message);
   }
 });
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === "FROM_POPUP") {
-    console.log("[Background] 팝업 메시지 수신:", request.message);
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // FROM_POPUP → content-script
+  if (message.type === "FROM_POPUP") {
+    console.log("[Background] 팝업 메시지 수신:", message.message);
 
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tab = tabs[0];
@@ -28,6 +32,80 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
       console.log("[Background] content-script로 메시지 전달 완료");
     });
+    return;
+  }
+
+  // content-script 강제 주입
+  if (message.action === 'ensureContentScript') {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tabId = tabs[0]?.id;
+      if (tabId) {
+        chrome.scripting.executeScript(
+          {
+            target: { tabId },
+            files: ['content.js'],
+          },
+          () => {
+            if (chrome.runtime.lastError) {
+              sendResponse({ status: 'injection failed' });
+            } else {
+              sendResponse({ status: 'injected' });
+            }
+          }
+        );
+      }
+    });
+    return true;
+  }
+
+  // 시선 좌표 전달
+  if (message.action === 'updateGazePosition' && message.gazeData) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: 'updateGazePosition',
+          gazeData: message.gazeData,
+        });
+      }
+    });
+    return true;
+  }
+
+  // 클릭 수행
+  if (message.action === 'performClick') {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: 'performClick',
+        });
+      }
+    });
+    return true;
+  }
+
+  // 커서 표시 여부 전송
+  if (message.action === 'toggleGazePointer') {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: 'toggleGazePointer',
+          visible: message.visible,
+        });
+      }
+    });
+    return true;
+  }
+
+  // 스크롤 활성화/비활성화
+  if (message.action === 'toggleScrolling') {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: 'toggleScrolling',
+          enabled: message.enabled,
+        });
+      }
+    });
+    return true;
   }
 });
-
