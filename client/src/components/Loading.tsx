@@ -1,14 +1,16 @@
-import Spinner from '../../public/icons/loading.gif';
+import { ClipLoader } from 'react-spinners';
 import { LoadingWrapper, Script } from './Loading.styles';
 
 export const Loading = () => {
   return (
     <LoadingWrapper>
       <Script>
-        <p>Using the gaze to create a fake cursor</p>
+        <p>Using the gaze to create a cursor</p>
         <p>Please wait a minute.</p>
       </Script>
-      <img src={Spinner} alt="로딩" width="70%" />
+      <div>
+        <ClipLoader color="#808080" size={35} />
+      </div>
     </LoadingWrapper>
   );
 };

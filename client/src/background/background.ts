@@ -91,3 +91,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true;
   }
 });
+
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.type === 'INPUT_FOCUSED') {
+    // sidepanel로 전달
+    chrome.runtime.sendMessage({
+      type: 'UPDATE_SUBMIT_STATE',
+      focused: message.focused,
+    });
+  }
+});

@@ -277,6 +277,24 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 });
 
+document.addEventListener('focusin', (e) => {
+  if (
+    e.target instanceof HTMLInputElement ||
+    e.target instanceof HTMLTextAreaElement
+  ) {
+    chrome.runtime.sendMessage({ type: 'INPUT_FOCUSED', focused: true });
+  }
+});
+
+document.addEventListener('focusout', (e) => {
+  if (
+    e.target instanceof HTMLInputElement ||
+    e.target instanceof HTMLTextAreaElement
+  ) {
+    chrome.runtime.sendMessage({ type: 'INPUT_FOCUSED', focused: false });
+  }
+});
+
 function injectMicrophonePermissionIframe() {
   const iframe = document.createElement('iframe');
   iframe.hidden = true;

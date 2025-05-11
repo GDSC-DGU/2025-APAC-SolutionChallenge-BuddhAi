@@ -6,6 +6,7 @@ export const LoadingWrapper = styled.div`
   align-items: center;
   justify-content: center;
   height: 100vh;
+  gap: 40px;
 `;
 
 export const Script = styled.div`
