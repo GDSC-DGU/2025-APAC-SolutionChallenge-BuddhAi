@@ -2,12 +2,8 @@ import { useRef, useState, useEffect } from 'react';
 import { useGaze } from '../../hooks/useGaze';
 import { useNavigate } from 'react-router-dom';
 import { useUIStore } from '../../store/useUIStore';
-import {
-  Container,
-  VideoWrapper,
-  StyledVideo,
-  StatusIndicator,
-} from './Gaze.styles';
+import { Container, StyledVideo } from './Gaze.styles';
+import { Loading } from '../../components/Loading';
 
 export default function Gaze() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -19,7 +15,7 @@ export default function Gaze() {
     y: number;
   } | null>(null);
 
-  const { status, gazePos, isTracking, simulateClick } = useGaze(videoRef);
+  const { status, gazePos, simulateClick } = useGaze(videoRef);
 
   useEffect(() => {
     if (!isGazeActive) {
@@ -65,17 +61,12 @@ export default function Gaze() {
     };
   }, [gazePos, lastGazePos, dwellTimer, simulateClick]);
 
+  const isLoading = status !== '시선 추적 활성화';
+
   return (
-    <Container>
-      <h2>시선 추적 제어</h2>
-      <StatusIndicator active={isTracking}>
-        상태: {status}
-        {gazePos &&
-          ` (X: ${Math.round(gazePos.x)}, Y: ${Math.round(gazePos.y)})`}
-      </StatusIndicator>
-      <VideoWrapper>
-        <StyledVideo ref={videoRef} autoPlay muted playsInline />
-      </VideoWrapper>
-    </Container>
+    <>
+      <StyledVideo ref={videoRef} autoPlay muted playsInline />
+      {isLoading ? <Loading /> : <Container></Container>}
+    </>
   );
 }

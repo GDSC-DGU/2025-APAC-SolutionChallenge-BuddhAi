@@ -27,7 +27,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["icons/cursor.svg"],
+      "resources": ["icons/cursor.svg", "icons/loading.gif"],
       "matches": ["<all_urls>"]
     }
   ]

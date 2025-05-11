@@ -27,7 +27,7 @@ export function useGaze(videoRef: React.RefObject<HTMLVideoElement | null>) {
       if (!videoRef.current) throw new Error('비디오 요소를 찾을 수 없습니다.');
       videoRef.current.srcObject = stream;
       await videoRef.current.play();
-      setStatus('카메라 연결됨');
+      setStatus('카메라 연결');
 
       // webgazer 스크립트 삽입 또는 재사용
       const existingScript = document.getElementById('webgazer-script');
@@ -84,7 +84,7 @@ export function useGaze(videoRef: React.RefObject<HTMLVideoElement | null>) {
     }
 
     setIsTracking(true);
-    setStatus('시선 추적 활성화됨');
+    setStatus('시선 추적 활성화');
 
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
