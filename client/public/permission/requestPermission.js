@@ -1,16 +1,20 @@
+console.log("[Permission] requestPermission.js 실행됨");
+
 navigator.mediaDevices
   .getUserMedia({ audio: true })
   .then((stream) => {
-    console.log("[PermissionPage] Microphone permission granted.");
-    stream.getTracks().forEach((track) => track.stop());
+    console.log("[Permission] 마이크 권한 허용됨");
 
-    console.log("[Permission] 권한 허용됨 → 메시지 전송 시도");
-    chrome.runtime.sendMessage({ type: "PERMISSION_GRANTED" });
+    const port = chrome.runtime.connect({ name: "permission" });
+    port.postMessage({ type: "PERMISSION_GRANTED" });
 
     window.close();
   })
-  .catch((error) => {
-    console.error("[PermissionPage] Microphone permission denied:", error);
-    chrome.runtime.sendMessage({ type: "PERMISSION_DENIED" });
+  .catch((err) => {
+    console.warn("[Permission] 마이크 권한 거부됨:", err);
+
+    const port = chrome.runtime.connect({ name: "permission" });
+    port.postMessage({ type: "PERMISSION_DENIED" });
+
     window.close();
   });
