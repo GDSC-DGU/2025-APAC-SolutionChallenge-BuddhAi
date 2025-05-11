@@ -1,4 +1,5 @@
 import { useUIStore } from "../store/useUIStore";
+import { startVoiceRecording } from "../sidepanel/hooks/startVoiceRecording";
 
 type Props = {
   isGazeActive: boolean;
@@ -39,7 +40,10 @@ export default function CommonIcons({ isGazeActive, isVoiceActive, isHelpActive 
           zIndex: 1000,
           cursor: "pointer",
         }}
-        onClick={toggleVoice}
+        onClick={() => {
+          toggleVoice();
+          startVoiceRecording();
+        }}
       >
         <img
           src={`/icons/${isVoiceActive ? "mic-on" : "mic-off"}.svg`}
