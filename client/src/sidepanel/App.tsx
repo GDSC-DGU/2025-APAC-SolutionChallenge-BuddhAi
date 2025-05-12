@@ -10,8 +10,8 @@ export default function App() {
     <BrowserRouter basename="/sidepanel.html">
       <Routes>
         {/* Layout은 공통 UI 컨테이너 */}
+        <Route path="/" element={<Home />} />
         <Route element={<Layout />}>
-          <Route path="/" element={<Home />} />
           <Route path="/choice" element={<Choice />} />
           <Route path="/voice" element={<Voice />} />
           <Route path="/gaze" element={<Gaze />} />
