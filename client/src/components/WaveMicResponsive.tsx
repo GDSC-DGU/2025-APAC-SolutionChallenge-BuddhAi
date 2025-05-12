@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { useAudioStore } from '../store/useAudioStore';
-import { startAudioRecording, stopAudioRecording } from '../hooks/useAudioRecorder';
+import { useUIStore } from '../store/useUIStore';
+import { startAudioRecording, stopAudioRecording } from '../sidepanel/hooks/useAudioRecorder';
 
 export default function WaveMicResponsive() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const { isRecording, setRecording } = useAudioStore();
+  const { isVoiceActive } = useUIStore();
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -13,6 +15,21 @@ export default function WaveMicResponsive() {
   const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    if (!isVoiceActive) {
+      console.log('[Audio] isVoiceActive OFF → 정리 수행');
+  
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      audioContextRef.current?.close();
+      if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
+  
+      if (useAudioStore.getState().isRecording) {
+        stopAudioRecording();
+        setRecording(false);
+      }
+  
+      return; 
+    }
+  
     const setupAudio = async () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const context = new AudioContext();
@@ -20,30 +37,34 @@ export default function WaveMicResponsive() {
       const analyser = context.createAnalyser();
       analyser.fftSize = 64;
       source.connect(analyser);
-
+  
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
+  
       streamRef.current = stream;
       audioContextRef.current = context;
       analyserRef.current = analyser;
       dataArrayRef.current = dataArray;
-
-      // 볼륨 주기적 체크
+  
       const intervalId = setInterval(() => {
+        if (!useUIStore.getState().isVoiceActive) {
+          console.log('[Audio] 감지 중단 (isVoiceActive=false)');
+          clearInterval(intervalId);
+          return;
+        }
+  
         if (!analyserRef.current || !dataArrayRef.current) return;
-
+  
         analyserRef.current.getByteFrequencyData(dataArrayRef.current);
         const volume = Math.max(...dataArrayRef.current);
-        console.log('Volume:', volume);
         const threshold = 150;
-
+  
         const isCurrentlyRecording = useAudioStore.getState().isRecording;
-
+  
         if (volume > threshold && !isCurrentlyRecording) {
           console.log('[녹음 시작]');
           setRecording(true);
           startAudioRecording();
-
+  
           if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
           recordingTimeoutRef.current = setTimeout(() => {
             console.log('[15초 강제 중단]');
@@ -51,26 +72,27 @@ export default function WaveMicResponsive() {
             setRecording(false);
           }, 15000);
         }
-
+  
         if (volume <= threshold && isCurrentlyRecording) {
           console.log('[녹음 자동 중단 - 볼륨↓]');
           stopAudioRecording();
           setRecording(false);
           if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
         }
-      }, 3000); 
-
+      }, 300);
+  
       return () => clearInterval(intervalId);
     };
-
+  
     setupAudio();
-
+  
     return () => {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       audioContextRef.current?.close();
       if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
     };
-  }, [setRecording]);
+  }, [isVoiceActive, setRecording]); 
+  
 
   useEffect(() => {
     if (!isRecording || !canvasRef.current || !analyserRef.current || !dataArrayRef.current) return;
