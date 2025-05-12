@@ -1,6 +1,6 @@
 import { injectMicrophonePermissionIframe } from "./utils/injectIframe";
 import { handleDomCommand } from "./handlers/domCommandHandler";
-import { handleVoiceCommand } from "./handlers/commandHandler";
+// import { handleVoiceCommand } from "./handlers/commandHandler";
 import { handleDomCommandSafely } from "./utils/handleDomCommandSafely";
 
 console.log("[ContentScript] content.js 로딩됨");
@@ -89,11 +89,21 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   // 음성 명령
-  if (message.type === "COMMAND" && message.command) {
-    handleVoiceCommand(message.command);
-    sendResponse({ status: "command processed" });
+  if (message.type === "DOM_COMMAND" && message.domCommand) {
+    const cmd = message.domCommand;
+    console.log("[ContentScript] 실행할 domCommand 수신:", cmd);
+  
+    try {
+      handleDomCommand(cmd, sendResponse); // 공식 핸들러
+      handleDomCommandSafely(cmd); // 안전 실행
+      sendResponse({ status: "success" });
+    } catch (e: any) {
+      console.error("❌ domCommand 실행 실패:", e);
+      sendResponse({ status: "error", message: e.message });
+    }
     return true;
   }
+  
 
   // iframe 삽입
   if (message.action === "injectMicrophonePermissionIframe") {
