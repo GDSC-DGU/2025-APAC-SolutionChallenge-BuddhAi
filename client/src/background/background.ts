@@ -16,7 +16,26 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // FROM_POPUP → content-script
+  if (message.type === "FROM_POPUP") {
+    console.log("[Background] 팝업 메시지 수신:", message.message);
+
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs[0];
+      if (!tab?.id) return;
+
+      chrome.tabs.sendMessage(tab.id, {
+        type: "FROM_BACKGROUND",
+        message: "백그라운드에서 전달",
+      });
+
+      console.log("[Background] content-script로 메시지 전달 완료");
+    });
+    return;
+  }
+
+  // content-script 강제 주입
   if (message.action === 'ensureContentScript') {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tabId = tabs[0]?.id;
@@ -36,11 +55,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         );
       }
     });
-
     return true;
   }
 
-  // 시선 좌표 전송 → content script
+  // 시선 좌표 전달
   if (message.action === 'updateGazePosition' && message.gazeData) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
@@ -53,7 +71,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true;
   }
 
-  // 클릭 명령 → content script
+  // 클릭 수행
   if (message.action === 'performClick') {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
@@ -65,7 +83,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true;
   }
 
-  // 커서 표시/숨김 → content script
+  // 커서 표시 여부 전송
   if (message.action === 'toggleGazePointer') {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
@@ -78,7 +96,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true;
   }
 
-  // 스크롤 기능 활성화/비활성화 → content script
+  // 스크롤 활성화/비활성화
   if (message.action === 'toggleScrolling') {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
