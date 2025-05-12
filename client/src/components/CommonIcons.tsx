@@ -40,10 +40,7 @@ export default function CommonIcons({ isGazeActive, isVoiceActive, isHelpActive 
           zIndex: 1000,
           cursor: "pointer",
         }}
-        onClick={() => {
-          toggleVoice();
-          startVoiceRecording();
-        }}
+        onClick={toggleVoice}
       >
         <img
           src={`/icons/${isVoiceActive ? "mic-on" : "mic-off"}.svg`}

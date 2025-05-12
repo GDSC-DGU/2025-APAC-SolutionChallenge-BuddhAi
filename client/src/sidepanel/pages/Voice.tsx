@@ -11,7 +11,7 @@ export default function Voice() {
         </S.Text>
       </S.TextBox>
       <S.WaveWrapper>
-        <WaveMicResponsive isActive={true} />
+        <WaveMicResponsive />
       </S.WaveWrapper>
     </S.Container>
   );
