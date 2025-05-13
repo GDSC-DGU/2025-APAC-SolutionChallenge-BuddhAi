@@ -1,4 +1,5 @@
 import { useUIStore } from "../store/useUIStore";
+import { startVoiceRecording } from "../sidepanel/hooks/startVoiceRecording";
 
 type Props = {
   isGazeActive: boolean;

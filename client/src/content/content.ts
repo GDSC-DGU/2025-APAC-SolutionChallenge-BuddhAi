@@ -1,11 +1,16 @@
-// 페이지 내 클릭 가능한 요소 탐지
-const allButtons = document.querySelectorAll('button');
-console.log('페이지의 버튼 목록:', allButtons);
+import { injectMicrophonePermissionIframe } from "./utils/injectIframe";
+import { handleDomCommand } from "./handlers/domCommandHandler";
+// import { handleVoiceCommand } from "./handlers/commandHandler";
+import { handleDomCommandSafely } from "./utils/handleDomCommandSafely";
 
-const allLinks = document.querySelectorAll('a');
-console.log('페이지의 링크 목록:', allLinks);
+console.log("[ContentScript] content.js 로딩됨");
 
-// 가상 커서 생성
+const allButtons = document.querySelectorAll("button");
+console.log("페이지의 버튼 목록:", allButtons);
+
+const allLinks = document.querySelectorAll("a");
+console.log("페이지의 링크 목록:", allLinks);
+
 let pointer: HTMLElement | null = null;
 let isScrolling = false;
 const SCROLL_THRESHOLD = 100;
@@ -13,8 +18,8 @@ const SCROLL_SPEED = 15;
 let scrollInterval: number | null = null;
 
 function createGazePointer() {
-  if (document.getElementById('gazePointer')) {
-    return document.getElementById('gazePointer') as HTMLElement;
+  if (document.getElementById("gazePointer")) {
+    return document.getElementById("gazePointer") as HTMLElement;
   }
 
   const newPointer = document.createElement('div');
@@ -136,103 +141,107 @@ function createClickEffect(x: number, y: number) {
 function startScrolling(direction: string) {
   if (scrollInterval) return;
   isScrolling = true;
-
   scrollInterval = window.setInterval(() => {
-    window.scrollBy(0, direction === 'up' ? -SCROLL_SPEED : SCROLL_SPEED);
+    window.scrollBy(0, direction === "up" ? -SCROLL_SPEED : SCROLL_SPEED);
   }, 16);
 }
 
 function stopScrolling() {
   if (!isScrolling) return;
   isScrolling = false;
-
   if (scrollInterval) {
     clearInterval(scrollInterval);
     scrollInterval = null;
   }
 }
 
-function isPageScrollable() {
-  return document.body.scrollHeight > window.innerHeight;
-}
-
 function checkScrollArea(y: number) {
-  if (!isPageScrollable()) return;
-
-  if (y < SCROLL_THRESHOLD) {
-    startScrolling('up');
-  } else if (y > window.innerHeight - SCROLL_THRESHOLD) {
-    startScrolling('down');
-  } else {
-    stopScrolling();
-  }
+  if (document.body.scrollHeight <= window.innerHeight) return;
+  if (y < SCROLL_THRESHOLD) startScrolling("up");
+  else if (y > window.innerHeight - SCROLL_THRESHOLD) startScrolling("down");
+  else stopScrolling();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   pointer = createGazePointer();
 });
-
-if (
-  document.readyState === 'complete' ||
-  document.readyState === 'interactive'
-) {
+if (["complete", "interactive"].includes(document.readyState)) {
   pointer = createGazePointer();
 }
 
-window.addEventListener('message', (event) => {
-  if (event.data?.type === 'GAZE_POSITION') {
-    const { x, y } = event.data;
-
-    if (!pointer) {
-      pointer = createGazePointer();
-    }
-
-    const element = document.elementFromPoint(x, y);
-    if (element) {
-      document
-        .querySelector('.gaze-highlight')
-        ?.classList.remove('gaze-highlight');
-      if (['BUTTON', 'A', 'INPUT'].includes(element.tagName)) {
-        element.classList.add('gaze-highlight');
-      }
-    }
-  }
-});
-
+// 메시지 리스너 통합
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message.action === 'updateGazePosition') {
-    if (!pointer) {
-      pointer = createGazePointer();
+  // domCommand
+  if (message.type === "DOM_COMMAND" && message.domCommand) {
+    console.log("[ContentScript] 실행할 domCommand 수신:", message.domCommand);
+    try {
+      handleDomCommand(message.domCommand, sendResponse);
+      handleDomCommandSafely(message.domCommand);
+      sendResponse({ status: "success" });
+    } catch (e: any) {
+      console.error("❌ domCommand 실행 실패:", e);
+      sendResponse({ status: "error", message: e.message });
     }
+    return true;
+  }
 
+  // 음성 명령
+  if (message.type === "DOM_COMMAND" && message.domCommand) {
+    const cmd = message.domCommand;
+    console.log("[ContentScript] 실행할 domCommand 수신:", cmd);
+  
+    try {
+      handleDomCommand(cmd, sendResponse); // 공식 핸들러
+      handleDomCommandSafely(cmd); // 안전 실행
+      sendResponse({ status: "success" });
+    } catch (e: any) {
+      console.error("❌ domCommand 실행 실패:", e);
+      sendResponse({ status: "error", message: e.message });
+    }
+    return true;
+  }
+  
+
+  // iframe 삽입
+  if (message.action === "injectMicrophonePermissionIframe") {
+    injectMicrophonePermissionIframe();
+    sendResponse({ status: "success" });
+    return true;
+  }
+  if (message.action === "injectCameraPermissionIframe") {
+    injectCameraPermissionIframe();
+    sendResponse({ status: "camera iframe injected" });
+    return true;
+  }
+
+  // Gaze 좌표 업데이트
+  if (message.action === "updateGazePosition") {
+    if (!pointer) pointer = createGazePointer();
     if (pointer && message.gazeData) {
       const { x, y } = message.gazeData;
       pointer.style.left = `${x}px`;
       pointer.style.top = `${y}px`;
       checkScrollArea(y);
     }
-
-    sendResponse({ status: 'position updated' });
+    sendResponse({ status: "position updated" });
     return true;
   }
 
-  if (message.action === 'toggleGazePointer') {
-    if (!pointer) {
-      pointer = createGazePointer();
-    }
-
+  // Gaze Pointer on/off
+  if (message.action === "toggleGazePointer") {
+    if (!pointer) pointer = createGazePointer();
     if (pointer) {
-      pointer.style.display = message.visible ? 'block' : 'none';
+      pointer.style.display = message.visible ? "block" : "none";
       if (!message.visible) stopScrolling();
     }
-
-    sendResponse({ status: 'visibility updated' });
+    sendResponse({ status: "visibility updated" });
     return true;
   }
 
-  if (message.action === 'toggleScrolling') {
+  // 스크롤 on/off
+  if (message.action === "toggleScrolling") {
     if (!message.enabled) stopScrolling();
-    sendResponse({ status: 'scrolling toggled' });
+    sendResponse({ status: "scrolling toggled" });
     return true;
   }
 
@@ -261,23 +270,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     }
   }
 
-  if (message.action === 'injectMicrophonePermissionIframe') {
-    injectMicrophonePermissionIframe();
-    sendResponse({ status: 'success' });
-    return true;
-  }
-
-  if (message.action === 'injectCameraPermissionIframe') {
-    injectCameraPermissionIframe();
-    sendResponse({ status: 'camera iframe injected' });
-    return true;
-  }
-
-  if (message.type === 'COMMAND' && message.command) {
-    console.log('[ContentScript] Received command:', message.command);
-    if (message.command.includes('뒤로')) history.back();
-    sendResponse({ status: 'command processed' });
-    return true;
+  // 백그라운드 테스트용
+  if (message.type === "FROM_BACKGROUND") {
+    console.log("[ContentScript] 백그라운드로부터 메시지 수신:", message.message);
+    const h1 = document.querySelector("h1");
+    if (h1) h1.style.border = "2px solid red";
+    console.log("[ContentScript] 웹페이지에 DOM 조작 완료");
   }
 });
 
@@ -309,7 +307,7 @@ function injectMicrophonePermissionIframe() {
 }
 
 function injectCameraPermissionIframe() {
-  const iframe = document.createElement('iframe');
+  const iframe = document.createElement("iframe");
   iframe.hidden = true;
   iframe.id = 'cameraPermissionsIFrame';
   iframe.allow = 'camera';
