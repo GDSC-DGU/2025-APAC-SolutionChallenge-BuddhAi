@@ -150,6 +150,22 @@ export function useGaze(videoRef: React.RefObject<HTMLVideoElement | null>) {
   };
 
   useEffect(() => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(
+          tabs[0].id,
+          {
+            action: 'injectCameraPermissionIframe',
+          },
+          (response) => {
+            console.log('Camera permission iframe response:', response);
+          }
+        );
+      }
+    });
+  }, []);
+
+  useEffect(() => {
     initWebGazer();
 
     return () => {

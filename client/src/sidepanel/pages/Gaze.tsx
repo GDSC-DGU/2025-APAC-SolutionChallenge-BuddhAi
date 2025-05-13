@@ -2,13 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useGaze } from '../../hooks/useGaze';
 import { useNavigate } from 'react-router-dom';
 import { useUIStore } from '../../store/useUIStore';
-import {
-  Container,
-  StyledVideo,
-  SubmitButton,
-  Submit,
-  SubmitWord,
-} from './Gaze.styles';
+import * as S from './Gaze.styles';
 import { Loading } from '../../components/Loading';
 import RingKeyboard from '../../components/keyBoard';
 
@@ -43,29 +37,18 @@ export default function Gaze() {
   }, [isGazeActive, navigate]);
 
   useEffect(() => {
-    const listener = (message: any) => {
-      if (message?.type === 'UPDATE_SUBMIT_STATE') {
-        setAbleSubmit(message.focused === true);
-      }
-    };
-
-    chrome.runtime.onMessage.addListener(listener);
-    return () => chrome.runtime.onMessage.removeListener(listener);
-  }, []);
-
-  useEffect(() => {
     if (!gazePos) return;
 
     const isSimilarPosition =
       lastGazePos &&
-      Math.abs(lastGazePos.x - gazePos.x) < 30 &&
-      Math.abs(lastGazePos.y - gazePos.y) < 30;
+      Math.abs(lastGazePos.x - gazePos.x) < 50 &&
+      Math.abs(lastGazePos.y - gazePos.y) < 50;
 
     if (isSimilarPosition) {
       if (!dwellTimer) {
         const timer = setTimeout(() => {
           simulateClick();
-        }, 500);
+        }, 400);
         setDwellTimer(timer);
       }
     } else {
@@ -83,23 +66,34 @@ export default function Gaze() {
     };
   }, [gazePos, lastGazePos, dwellTimer, simulateClick]);
 
+  useEffect(() => {
+    const listener = (message: any) => {
+      if (message?.type === 'UPDATE_SUBMIT_STATE') {
+        setAbleSubmit(message.focused === true);
+      }
+    };
+
+    chrome.runtime.onMessage.addListener(listener);
+    return () => chrome.runtime.onMessage.removeListener(listener);
+  }, []);
+
   const isLoading = status !== '시선 추적 활성화';
 
   return (
     <>
-      <StyledVideo ref={videoRef} autoPlay muted playsInline />
+      <S.StyledVideo ref={videoRef} autoPlay muted playsInline />
       {isLoading ? (
         <Loading />
       ) : (
-        <Container>
+        <S.Container>
           <RingKeyboard onWordComplete={handleWordComplete} />
-          <Submit>
+          <S.Submit>
             {completedWords.map((word, i) => (
-              <SubmitWord key={i}>{word}</SubmitWord>
+              <S.SubmitWord key={i}>{word}</S.SubmitWord>
             ))}
-          </Submit>
-          <SubmitButton disabled={!ableSubmit}>Enter</SubmitButton>
-        </Container>
+          </S.Submit>
+          <S.SubmitButton disabled={!ableSubmit}>Enter</S.SubmitButton>
+        </S.Container>
       )}
     </>
   );

@@ -7,8 +7,6 @@ console.log('페이지의 링크 목록:', allLinks);
 
 // 가상 커서 생성
 let pointer: HTMLElement | null = null;
-
-// 스크롤 관련 변수
 let isScrolling = false;
 const SCROLL_THRESHOLD = 100;
 const SCROLL_SPEED = 15;
@@ -58,8 +56,8 @@ function createClickEffect(x: number, y: number) {
     position: 'fixed',
     left: `${x}px`,
     top: `${y}px`,
-    width: '65px',
-    height: '65px',
+    width: '50px',
+    height: '50px',
     pointerEvents: 'none',
     transform: 'translate(-50%, -50%)',
     transition: 'all 0.3s ease-out',
@@ -239,21 +237,27 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   if (message.action === 'performClick') {
+    console.log('[ContentScript] performClick 메시지 수신됨');
+
     if (pointer) {
       const x = parseInt(pointer.style.left, 10);
       const y = parseInt(pointer.style.top, 10);
+
+      // 클릭 효과를 일단 발생시킴 (위치에 관계없이)
+      createClickEffect(x, y);
+
       const el = document.elementFromPoint(x, y);
-
       if (el) {
-        // 클릭 이펙트 생성
-        createClickEffect(x, y);
-
         if (el instanceof HTMLElement) {
           el.click();
         } else {
           el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         }
+      } else {
+        console.warn('[ContentScript] 클릭 위치에 요소가 없음');
       }
+    } else {
+      console.warn('[ContentScript] pointer가 null임');
     }
   }
 
@@ -309,6 +313,6 @@ function injectCameraPermissionIframe() {
   iframe.hidden = true;
   iframe.id = 'cameraPermissionsIFrame';
   iframe.allow = 'camera';
-  iframe.src = chrome.runtime.getURL('permission/camera.html');
+  iframe.src = chrome.runtime.getURL('cameraPermission/index.html');
   document.body.appendChild(iframe);
 }
