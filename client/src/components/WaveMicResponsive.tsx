@@ -1,94 +1,156 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
+import { useAudioStore } from '../store/useAudioStore';
+import { useUIStore } from '../store/useUIStore';
+import { useVoiceStore } from '../store/useVoiceStore';
+import { startAudioRecording, stopAudioRecording } from '../sidepanel/hooks/useAudioRecorder';
+import { startSTT, stopSTT } from '../sidepanel/hooks/useSTTController';
 
-interface Props {
-  isActive: boolean; // 마이크가 켜져 있을 때만 웨이브 표시
-}
-
-export default function WaveMicResponsive({ isActive }: Props) {
+export default function WaveMicResponsive() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
-  const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
-  const [animationId, setAnimationId] = useState<number | null>(null);
+  const { isRecording, setRecording } = useAudioStore();
+  const { isVoiceActive } = useUIStore();
+  const { setSpokenText } = useVoiceStore();
+
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const dataArrayRef = useRef<Uint8Array | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (!isActive) return; // 비활성 상태면 아무 작업도 하지 않음
+    if (!isVoiceActive) {
+      console.log('[Audio] isVoiceActive OFF → 정리 수행');
+
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      audioContextRef.current?.close();
+      if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
+
+      if (useAudioStore.getState().isRecording) {
+        stopAudioRecording();
+        stopSTT();
+        setRecording(false);
+      }
+
+      return;
+    }
 
     const setupAudio = async () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const context = new AudioContext();
       const source = context.createMediaStreamSource(stream);
-      const analyserNode = context.createAnalyser();
-      analyserNode.fftSize = 64;
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 64;
+      source.connect(analyser);
 
-      source.connect(analyserNode);
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-      setAudioContext(context);
-      setAnalyser(analyserNode);
+      streamRef.current = stream;
+      audioContextRef.current = context;
+      analyserRef.current = analyser;
+      dataArrayRef.current = dataArray;
+
+      const intervalId = setInterval(() => {
+        if (!useUIStore.getState().isVoiceActive) {
+          console.log('[Audio] 감지 중단 (isVoiceActive=false)');
+          clearInterval(intervalId);
+          return;
+        }
+
+        if (!analyserRef.current || !dataArrayRef.current) return;
+
+        analyserRef.current.getByteFrequencyData(dataArrayRef.current);
+        const volume = Math.max(...dataArrayRef.current);
+        const threshold = 150;
+
+        const isCurrentlyRecording = useAudioStore.getState().isRecording;
+
+        if (volume > threshold && !isCurrentlyRecording) {
+          console.log('[녹음 시작]');
+          setRecording(true);
+          startAudioRecording();
+
+          startSTT((text) => setSpokenText(text));
+
+          if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
+          recordingTimeoutRef.current = setTimeout(() => {
+            console.log('[15초 강제 중단]');
+            stopAudioRecording();
+            stopSTT();
+            setRecording(false);
+          }, 15000);
+        }
+
+        if (volume <= threshold && isCurrentlyRecording) {
+          console.log('[녹음 자동 중단 - 볼륨↓]');
+          stopAudioRecording();
+          stopSTT();
+          setRecording(false);
+          if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
+        }
+      }, 300);
+
+      return () => clearInterval(intervalId);
     };
 
     setupAudio();
 
     return () => {
-      audioContext?.close();
-      if (animationId) cancelAnimationFrame(animationId);
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      audioContextRef.current?.close();
+      if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
     };
-  }, [isActive]);
+  }, [isVoiceActive, setRecording, setSpokenText]);
 
+  // 웨이브 애니메이션
   useEffect(() => {
-    if (!analyser || !canvasRef.current) return;
+    if (!isRecording || !canvasRef.current || !analyserRef.current || !dataArrayRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
     const draw = () => {
-    analyser.getByteFrequencyData(dataArray);
+      const analyser = analyserRef.current!;
+      const dataArray = dataArrayRef.current!;
+      analyser.getByteFrequencyData(dataArray);
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const step = canvas.width / dataArray.length;
 
-    const step = canvas.width / bufferLength;
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height);
+      let prevX = 0;
+      let prevY = canvas.height;
 
-    ctx.beginPath();
-    ctx.moveTo(0, canvas.height);
+      for (let i = 0; i < dataArray.length; i++) {
+        const value = dataArray[i] / 255;
+        const x = i * step;
+        const y = canvas.height - value * canvas.height * 0.8;
 
-    let prevX = 0;
-    let prevY = canvas.height;
+        const ctrlX = (prevX + x) / 2;
+        const ctrlY = (prevY + y) / 2;
+        ctx.quadraticCurveTo(prevX, prevY, ctrlX, ctrlY);
 
-    for (let i = 0; i < bufferLength; i++) {
-      const value = dataArray[i] / 255;
-      const x = i * step;
-      const y = canvas.height - value * canvas.height * 0.8;
-
-      const ctrlX = (prevX + x) / 2;
-      const ctrlY = (prevY + y) / 2;
-
-      ctx.quadraticCurveTo(prevX, prevY, ctrlX, ctrlY);
-
-      prevX = x;
-      prevY = y;
-    }
+        prevX = x;
+        prevY = y;
+      }
 
       ctx.lineTo(canvas.width, canvas.height);
       ctx.closePath();
-      ctx.fill();
 
       const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
-      gradient.addColorStop(0, getComputedStyle(document.documentElement).getPropertyValue('--color-purple').trim());
-      gradient.addColorStop(1, getComputedStyle(document.documentElement).getPropertyValue('--color-blue').trim());
+      gradient.addColorStop(0, getComputedStyle(document.documentElement).getPropertyValue('--color-purple') || '#a855f7');
+      gradient.addColorStop(1, getComputedStyle(document.documentElement).getPropertyValue('--color-blue') || '#3b82f6');
       ctx.fillStyle = gradient;
       ctx.fill();
 
-      const id = requestAnimationFrame(draw);
-      setAnimationId(id);
+      requestAnimationFrame(draw);
     };
 
     draw();
-  }, [analyser]);
+  }, [isRecording]);
 
-  if (!isActive) return null;
+  if (!isRecording) return null;
 
   return (
     <canvas
