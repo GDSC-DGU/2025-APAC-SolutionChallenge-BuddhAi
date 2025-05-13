@@ -1,6 +1,6 @@
 import { useVoiceStore } from "../../store/voiceStore";
 import { onPermissionGranted } from "../../handlers/onPermissionGranted";
-import { startAudioRecording } from "../../hooks/useAudioRecorder";
+import { startAudioRecording } from "../hooks/useAudioRecorder";
 
 export const requestMicPermission = () => {
   const url = chrome.runtime.getURL("permission/index.html");

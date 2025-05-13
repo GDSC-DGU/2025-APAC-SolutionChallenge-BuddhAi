@@ -1,15 +1,14 @@
 import * as S from './Home.styles';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../../public/icons/logo.png';
-import CommonButton from '../../components/CommonButton';
 import { useState, useEffect } from 'react';
 
 const TEXT_SEGMENTS = [
-  { text: "Let your ", highlight: false },
-  { text: "gaze", highlight: "gaze" },
+  { text: 'Let your ', highlight: false },
+  { text: 'gaze', highlight: 'gaze' },
   { text: " lead the way.\nWe'll follow your ", highlight: false },
-  { text: "voice", highlight: "voice" },
-  { text: ".", highlight: false },
+  { text: 'voice', highlight: 'voice' },
+  { text: '.', highlight: false },
 ];
 
 export default function Home() {
@@ -31,7 +30,8 @@ export default function Home() {
     if (charIndex < fullText.length) {
       const timeout = setTimeout(() => {
         const updated = [...typed];
-        updated[currentIndex] = (updated[currentIndex] || "") + fullText[charIndex];
+        updated[currentIndex] =
+          (updated[currentIndex] || '') + fullText[charIndex];
         setTyped(updated);
         setCharIndex((prev) => prev + 1);
       }, 100);
@@ -42,36 +42,35 @@ export default function Home() {
     }
   }, [charIndex, currentIndex]);
 
+  useEffect(() => {
+    if (done) {
+      const timer = setTimeout(() => {
+        navigate('/choice');
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [done, navigate]);
+
   return (
     <S.Container>
       <S.LogoWrapper>
         <img src={logo} alt="Mind Cursor Logo" style={{ width: '200px' }} />
       </S.LogoWrapper>
-
       <S.TextBox>
         <S.TypingText>
           {typed.map((str, i) => {
             const seg = TEXT_SEGMENTS[i];
-            if (seg.highlight === "gaze") {
+            if (seg.highlight === 'gaze') {
               return <S.Gaze key={i}>{str}</S.Gaze>;
             }
-            if (seg.highlight === "voice") {
+            if (seg.highlight === 'voice') {
               return <S.Voice key={i}>{str}</S.Voice>;
             }
             return <span key={i}>{str}</span>;
           })}
         </S.TypingText>
       </S.TextBox>
-
-      {done && (
-        <S.ButtonWrapper>
-          <CommonButton
-            text="Start"
-            onClick={() => navigate('/choice')}
-            color="linear-gradient(to right, #B020D3, #0970E7)"
-          />
-        </S.ButtonWrapper>
-      )}
     </S.Container>
   );
 }

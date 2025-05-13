@@ -1,4 +1,4 @@
-import { startAudioRecording } from "../hooks/useAudioRecorder";
+import { startAudioRecording } from "../sidepanel/hooks/useAudioRecorder";
 import { sendDomCommandToContent } from "../utils/sendDomCommandToContent";
 
 export const onPermissionGranted = () => {

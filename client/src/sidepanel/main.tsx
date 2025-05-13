@@ -1,8 +1,6 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import '../styles/global.css';
-
 import { useVoiceStore } from '../store/voiceStore';
 import { onPermissionGranted } from '../handlers/onPermissionGranted';
 
@@ -30,9 +28,5 @@ const rootElement = document.getElementById('root');
 
 if (rootElement) {
   const root = ReactDOM.createRoot(rootElement);
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
+  root.render(<App />);
 }
