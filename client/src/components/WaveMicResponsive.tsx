@@ -2,7 +2,10 @@ import { useEffect, useRef } from 'react';
 import { useAudioStore } from '../store/useAudioStore';
 import { useUIStore } from '../store/useUIStore';
 import { useVoiceStore } from '../store/useVoiceStore';
-import { startAudioRecording, stopAudioRecording } from '../sidepanel/hooks/useAudioRecorder';
+import {
+  startAudioRecording,
+  stopAudioRecording,
+} from '../sidepanel/hooks/useAudioRecorder';
 import { startSTT, stopSTT } from '../sidepanel/hooks/useSTTController';
 
 export default function WaveMicResponsive() {
@@ -23,7 +26,8 @@ export default function WaveMicResponsive() {
 
       streamRef.current?.getTracks().forEach((track) => track.stop());
       audioContextRef.current?.close();
-      if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
+      if (recordingTimeoutRef.current)
+        clearTimeout(recordingTimeoutRef.current);
 
       if (useAudioStore.getState().isRecording) {
         stopAudioRecording();
@@ -71,7 +75,8 @@ export default function WaveMicResponsive() {
 
           startSTT((text) => setSpokenText(text));
 
-          if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
+          if (recordingTimeoutRef.current)
+            clearTimeout(recordingTimeoutRef.current);
           recordingTimeoutRef.current = setTimeout(() => {
             console.log('[15초 강제 중단]');
             stopAudioRecording();
@@ -85,7 +90,8 @@ export default function WaveMicResponsive() {
           stopAudioRecording();
           stopSTT();
           setRecording(false);
-          if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
+          if (recordingTimeoutRef.current)
+            clearTimeout(recordingTimeoutRef.current);
         }
       }, 300);
 
@@ -97,13 +103,20 @@ export default function WaveMicResponsive() {
     return () => {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       audioContextRef.current?.close();
-      if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
+      if (recordingTimeoutRef.current)
+        clearTimeout(recordingTimeoutRef.current);
     };
   }, [isVoiceActive, setRecording, setSpokenText]);
 
   // 웨이브 애니메이션
   useEffect(() => {
-    if (!isRecording || !canvasRef.current || !analyserRef.current || !dataArrayRef.current) return;
+    if (
+      !isRecording ||
+      !canvasRef.current ||
+      !analyserRef.current ||
+      !dataArrayRef.current
+    )
+      return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -139,8 +152,18 @@ export default function WaveMicResponsive() {
       ctx.closePath();
 
       const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
-      gradient.addColorStop(0, getComputedStyle(document.documentElement).getPropertyValue('--color-purple') || '#a855f7');
-      gradient.addColorStop(1, getComputedStyle(document.documentElement).getPropertyValue('--color-blue') || '#3b82f6');
+      gradient.addColorStop(
+        0,
+        getComputedStyle(document.documentElement).getPropertyValue(
+          '--color-purple'
+        ) || '#a855f7'
+      );
+      gradient.addColorStop(
+        1,
+        getComputedStyle(document.documentElement).getPropertyValue(
+          '--color-blue'
+        ) || '#3b82f6'
+      );
       ctx.fillStyle = gradient;
       ctx.fill();
 
