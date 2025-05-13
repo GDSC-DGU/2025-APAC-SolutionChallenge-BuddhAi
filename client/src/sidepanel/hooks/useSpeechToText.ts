@@ -1,10 +1,12 @@
-import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from 'react-speech-recognition';
 import { useEffect } from 'react';
 import { useUIStore } from '../../store/useUIStore';
 import { useVoiceStore } from '../../store/useVoiceStore';
 
 export const useSpeechToText = () => {
-  const { transcript, resetTranscript } = useSpeechRecognition();
+  const { transcript } = useSpeechRecognition();
   const { isVoiceActive } = useUIStore();
   const { setSpokenText } = useVoiceStore();
 

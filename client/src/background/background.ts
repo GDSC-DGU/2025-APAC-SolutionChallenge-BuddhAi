@@ -16,21 +16,21 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   // FROM_POPUP → content-script
-  if (message.type === "FROM_POPUP") {
-    console.log("[Background] 팝업 메시지 수신:", message.message);
+  if (message.type === 'FROM_POPUP') {
+    console.log('[Background] 팝업 메시지 수신:', message.message);
 
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tab = tabs[0];
       if (!tab?.id) return;
 
       chrome.tabs.sendMessage(tab.id, {
-        type: "FROM_BACKGROUND",
-        message: "백그라운드에서 전달",
+        type: 'FROM_BACKGROUND',
+        message: '백그라운드에서 전달',
       });
 
-      console.log("[Background] content-script로 메시지 전달 완료");
+      console.log('[Background] content-script로 메시지 전달 완료');
     });
     return;
   }
