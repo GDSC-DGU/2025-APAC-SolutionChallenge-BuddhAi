@@ -58,7 +58,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  // 시선 좌표 전달
   if (message.action === 'updateGazePosition' && message.gazeData) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
@@ -71,7 +70,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  // 클릭 수행
   if (message.action === 'performClick') {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
@@ -83,7 +81,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  // 커서 표시 여부 전송
   if (message.action === 'toggleGazePointer') {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
@@ -96,7 +93,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  // 스크롤 활성화/비활성화
   if (message.action === 'toggleScrolling') {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
@@ -107,5 +103,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     });
     return true;
+  }
+
+  if (message.type === 'INPUT_FOCUSED') {
+    chrome.runtime.sendMessage({
+      type: 'UPDATE_SUBMIT_STATE',
+      focused: message.focused,
+    });
   }
 });

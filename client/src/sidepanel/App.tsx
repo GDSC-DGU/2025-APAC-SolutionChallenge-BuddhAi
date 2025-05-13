@@ -9,7 +9,6 @@ export default function App() {
   return (
     <BrowserRouter basename="/sidepanel.html">
       <Routes>
-        {/* Layout은 공통 UI 컨테이너 */}
         <Route path="/" element={<Home />} />
         <Route element={<Layout />}>
           <Route path="/choice" element={<Choice />} />
