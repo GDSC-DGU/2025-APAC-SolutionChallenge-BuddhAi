@@ -21,6 +21,17 @@ export default function Gaze() {
   const handleWordComplete = (word: string) => {
     setCompletedWords((prev) => [...prev, word]);
   };
+  const handleSubmit = () => {
+    const text = completedWords.join('');
+    console.log('입력값 전송:', text);
+
+    chrome.runtime.sendMessage({
+      action: 'relayInsertInputValue',
+      value: text,
+    });
+
+    setCompletedWords([]);
+  };
 
   useEffect(() => {
     if (!isGazeActive) {
@@ -92,7 +103,9 @@ export default function Gaze() {
               <S.SubmitWord key={i}>{word}</S.SubmitWord>
             ))}
           </S.Submit>
-          <S.SubmitButton disabled={!ableSubmit}>Enter</S.SubmitButton>
+          <S.SubmitButton disabled={!ableSubmit} onClick={handleSubmit}>
+            Enter
+          </S.SubmitButton>
         </S.Container>
       )}
     </>

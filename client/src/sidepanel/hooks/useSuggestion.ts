@@ -3,8 +3,8 @@ import Fuse from 'fuse.js';
 
 const dummyPhrases = [
   "Send an email to asw4ever@naver.com with the subject 'Hi' and message 'How are you'",
-  "Show me the latest news articles",
-  "Open Gmail",
+  'Show me the latest news articles',
+  'Open Gmail',
 ];
 
 const fuse = new Fuse(dummyPhrases, {

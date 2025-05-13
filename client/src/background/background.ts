@@ -111,4 +111,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       focused: message.focused,
     });
   }
+
+  if (message.action === 'relayInsertInputValue' && message.value) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: 'insertInputValue',
+          value: message.value,
+        });
+      }
+    });
+  }
 });

@@ -268,6 +268,66 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     }
   }
 
+  if (message.action === 'insertInputValue' && message.value) {
+    let target: HTMLElement | null = document.activeElement as HTMLElement;
+    if (
+      !target ||
+      !(
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target.isContentEditable
+      )
+    ) {
+      target = document.querySelector(
+        'textarea, input[type="text"], [contenteditable="true"]'
+      ) as HTMLElement;
+    }
+
+    if (!target) {
+      return;
+    }
+
+    if (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement
+    ) {
+      const setter = Object.getOwnPropertyDescriptor(
+        target.constructor.prototype,
+        'value'
+      )?.set;
+
+      if (setter) {
+        setter.call(target, message.value);
+      } else {
+        target.value = message.value;
+      }
+
+      target.dispatchEvent(new Event('input', { bubbles: true }));
+    } else if (target.isContentEditable) {
+      target.innerText = message.value;
+      target.dispatchEvent(new Event('input', { bubbles: true }));
+    } else {
+      console.warn('[Content] 알 수 없는 요소 유형');
+      return;
+    }
+
+    const form = target.closest('form');
+    if (form) {
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
+    } else {
+      const submitButton = document.querySelector(
+        'button[type="submit"]'
+      ) as HTMLElement;
+      if (submitButton) {
+        submitButton.click();
+      } else {
+        console.warn('[Content] form도 submit 버튼도 없음');
+      }
+    }
+  }
+
   // 백그라운드 테스트용
   if (message.type === 'FROM_BACKGROUND') {
     console.log(

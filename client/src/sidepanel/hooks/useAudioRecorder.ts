@@ -6,7 +6,9 @@ let mediaRecorder: MediaRecorder | null = null;
 let audioChunks: Blob[] = [];
 
 export const startAudioRecording = async () => {
-  const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+  const permission = await navigator.permissions.query({
+    name: 'microphone' as PermissionName,
+  });
 
   if (permission.state !== 'granted') {
     console.warn('[Permission] 마이크 권한 없음, 요청 페이지 오픈');
@@ -25,7 +27,9 @@ export const startAudioRecording = async () => {
 
   mediaRecorder.onstop = async () => {
     const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
-    const audioFile = new File([audioBlob], 'voice-command.mp3', { type: 'audio/mpeg' });
+    const audioFile = new File([audioBlob], 'voice-command.mp3', {
+      type: 'audio/mpeg',
+    });
 
     console.log('[Recorder] 녹음 종료, 파일 생성 완료:', audioFile);
 
