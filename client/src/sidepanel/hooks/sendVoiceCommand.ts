@@ -2,14 +2,23 @@ import { getCurrentHtmlFile } from '../utils/getCurrentHtmlFile';
 
 let retryCount = 0;
 const MAX_RETRY = 3;
+let callCount = 0; // 호출 횟수 카운터
+
 
 export const sendVoiceCommand = async (htmlFile: File, audioFile: File): Promise<void> => {
   const formData = new FormData();
   formData.append('htmlFile', htmlFile);
   formData.append('commandFile', audioFile);
 
+   // 호출 횟수에 따라 엔드포인트 결정
+   const version = callCount % 2 === 0 ? 'mailsender-1' : 'mailsender-2';
+   const endpoint = `https://famous-blowfish-plainly.ngrok-free.app/api/v3/${version}`;
+   callCount++;
+  
   try {
-    const res = await fetch('https://famous-blowfish-plainly.ngrok-free.app/api/v3/command', {
+     const res = await fetch(endpoint, {
+
+    // const res = await fetch('https://famous-blowfish-plainly.ngrok-free.app/api/v3/command', {
       method: 'POST',
       body: formData,
     });

@@ -39,21 +39,38 @@ export const handleDomCommandSafely = (command: any) => {
         continue;
       }
 
+      // 공통 retryClick 유틸
+const retryClick = (selector: string, maxTry = 5, interval = 300) => {
+  let attempt = 0;
+  const tryClick = () => {
+    const el = document.querySelector(selector);
+    if (el instanceof HTMLElement) {
+      el.click();
+      console.log(`✅ 클릭 성공 (재시도 ${attempt}회): ${selector}`);
+    } else if (attempt < maxTry) {
+      attempt++;
+      console.warn(`⏳ 클릭 재시도 (${attempt}/${maxTry}): ${selector}`);
+      setTimeout(tryClick, interval);
+    } else {
+      console.error(`❌ 클릭 실패: ${selector} - ${maxTry}회 시도 후 포기`);
+    }
+  };
+  tryClick();
+      };
+      
       // 2. .click()
-      if (line.includes('.click()')) {
-        const selectorMatch = line.match(/querySelector\((['"`].+?['"`])\)/);
-        const selector = selectorMatch?.[1]?.slice(1, -1);
-        if (!selector) throw new Error(`클릭 selector 파싱 실패: ${line}`);
+if (line.includes('.click()')) {
+  const selectorMatch = line.match(/querySelector\((['"`].+?['"`])\)/);
+  const selector = selectorMatch?.[1]?.slice(1, -1);
+  if (!selector) {
+    console.error(`❌ 클릭 selector 파싱 실패: ${line}`);
+    continue;
+  }
 
-        const el = document.querySelector(selector);
-        if (el instanceof HTMLElement) {
-          el.click();
-          console.log(`✅ 클릭 완료: ${selector}`);
-        } else {
-          console.warn(`⚠️ 클릭 요소 없음 or 클릭 불가: ${selector}`);
-        }
-        continue;
-      }
+  // 자동 재시도 클릭
+  retryClick(selector);
+  continue;
+}
 
       // 3. .value = "..."
       if (line.includes('.value =')) {
@@ -101,6 +118,31 @@ export const handleDomCommandSafely = (command: any) => {
         }
         continue;
       }
+
+      if (line.includes('document.evaluate')) {
+        try {
+          const match = line.match(/document\.evaluate\((.+?)\)\.singleNodeValue\.click\(\)/);
+          if (!match) throw new Error('XPath 파싱 실패');
+      
+          const evalArgs = match[1]; // 괄호 안 전체 문자열
+          const fn = new Function(`
+            const result = document.evaluate(${evalArgs});
+            const el = result.singleNodeValue;
+            if (el instanceof HTMLElement) {
+              el.click();
+              console.log("✅ XPath 클릭 성공");
+            } else {
+              console.warn("⚠️ XPath로 요소를 찾지 못함");
+            }
+          `);
+      
+          fn();
+        } catch (e) {
+          console.error('❌ XPath 명령어 실행 실패:', e);
+        }
+        continue;
+      }
+      
 
       // 5. fallback
       console.warn('⚠️ 지원되지 않는 명령어:', line);
