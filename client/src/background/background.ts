@@ -6,7 +6,6 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-// 메시지 리스너 등록
 chrome.runtime.onMessage.addListener((message) => {
   if (
     message.type === 'PERMISSION_GRANTED' ||
@@ -17,7 +16,6 @@ chrome.runtime.onMessage.addListener((message) => {
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  // FROM_POPUP → content-script
   if (message.type === 'FROM_POPUP') {
     console.log('[Background] 팝업 메시지 수신:', message.message);
 
@@ -35,7 +33,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return;
   }
 
-  // content-script 강제 주입
   if (message.action === 'ensureContentScript') {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tabId = tabs[0]?.id;
@@ -121,5 +118,23 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         });
       }
     });
+  }
+
+  if (message.type === 'FOCUS_ON_PAGE') {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: 'showPageCursor' });
+      }
+    });
+    chrome.runtime.sendMessage({ action: 'hideSidePanelCursor' });
+  }
+
+  if (message.type === 'FOCUS_ON_SIDEPANEL') {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: 'hidePageCursor' });
+      }
+    });
+    chrome.runtime.sendMessage({ action: 'showSidePanelCursor' });
   }
 });
