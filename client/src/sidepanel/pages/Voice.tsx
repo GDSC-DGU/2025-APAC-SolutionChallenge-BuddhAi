@@ -1,13 +1,25 @@
-import { useNavigate } from 'react-router-dom';
+import * as S from './Voice.styles';
+import WaveMicResponsive from '../../components/WaveMicResponsive';
+import { useSpeechToText } from '../hooks/useSpeechToText';
+import { useVoiceStore } from '../../store/useVoiceStore';
+import { useSuggestion } from '../hooks/useSuggestion';
 
 export default function Voice() {
-  const navigate = useNavigate();
+  useSpeechToText();
+  const spokenText = useVoiceStore((state) => state.spokenText);
+  const suggested = useSuggestion(spokenText);
 
   return (
-    <div style={{ padding: '16px' }}>
-      <h2>Voice 화면</h2>
-      <p>여긴 voice 버전 UI입니다.</p>
-      <button onClick={() => navigate(-1)}>선택으로 돌아가기</button>
-    </div>
+    <S.Container>
+      <S.TextBox>
+        <S.Text>
+          <S.Spoken>{spokenText}</S.Spoken>
+          <S.Suggested>{suggested}</S.Suggested>
+        </S.Text>
+      </S.TextBox>
+      <S.WaveWrapper>
+        <WaveMicResponsive />
+      </S.WaveWrapper>
+    </S.Container>
   );
 }
