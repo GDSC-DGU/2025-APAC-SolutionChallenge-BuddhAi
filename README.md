@@ -43,3 +43,76 @@
   </table>
 </div>
 <br />
+
+
+## **🚀 How to Install & Register the Extension**
+
+  
+
+### **1. Clone the Repository**
+
+```
+git clone https://github.com/GDSC-DGU/2025-APAC-SolutionChallenge-BuddhAi.git
+cd 2025-APAC-SolutionChallenge-BuddhAi
+cd client
+```
+
+### **2. Install Dependencies**
+
+```
+yarn install
+```
+
+### **3. Build the Project**
+
+```
+yarn build
+```
+
+After building, a dist folder will be created in the root directory. This folder contains the manifest.json file and all necessary files for the extension.
+
+----------
+
+## **🧩 How to Load as a Chrome Extension**
+
+1.  Open Chrome and go to chrome://extensions/
+    
+2.  Enable **Developer mode** (top right corner)
+    
+3.  Click **Load unpacked**
+    
+4.  Select the dist folder generated in the previous step
+    
+
+  
+
+Your extension should now appear in the Chrome extensions list and be ready for use.
+
+----------
+
+## **🛠️ Troubleshooting**
+
+-   **Yarn command not found:**
+    
+    Make sure Yarn is installed. See the [official guide](https://classic.yarnpkg.com/en/docs/install/).
+    
+-   **Build errors:**
+    
+    Delete node_modules and reinstall:
+    
+
+```
+rm -rf node_modules
+yarn install
+```
+    
+-   **Extension not loading:**
+    
+    Double-check that manifest.json exists in the dist folder and the folder structure matches Chrome Extension requirements.
+    
+
+----------
+
+For more details, refer to the [original README](./README.md) or [project repository](https://github.com/GDSC-DGU/2025-APAC-SolutionChallenge-BuddhAi).
+
+----------
