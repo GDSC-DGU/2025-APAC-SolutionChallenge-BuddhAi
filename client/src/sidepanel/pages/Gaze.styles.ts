@@ -1,4 +1,27 @@
 import styled from 'styled-components';
+import { createGlobalStyle } from 'styled-components';
+
+export const GlobalStyle = createGlobalStyle`
+  body, * {
+    cursor: none !important;
+  }
+
+  input, textarea, button, select, a {
+    cursor: none !important;
+  }
+
+  button:hover, a:hover, input:hover, textarea:hover, select:hover {
+    cursor: none !important;
+  }
+
+  button:active, a:active, input:active, textarea:active, select:active {
+    cursor: none !important;
+  }
+
+  button:focus, a:focus, input:focus, textarea:focus, select:focus {
+    cursor: none !important;
+  }
+`;
 
 export const Container = styled.div`
   display: flex;

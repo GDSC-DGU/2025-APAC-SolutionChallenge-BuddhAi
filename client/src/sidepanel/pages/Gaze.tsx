@@ -5,21 +5,29 @@ import { useUIStore } from '../../store/useUIStore';
 import * as S from './Gaze.styles';
 import { Loading } from '../../components/Loading';
 import RingKeyboard from '../../components/keyBoard';
+import { GlobalStyle } from './Gaze.styles';
 
 export default function Gaze() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const navigate = useNavigate();
   const { isGazeActive } = useUIStore();
+
   const [dwellTimer, setDwellTimer] = useState<NodeJS.Timeout | null>(null);
   const [lastGazePos, setLastGazePos] = useState<{
     x: number;
     y: number;
   } | null>(null);
   const { status, gazePos, simulateClick } = useGaze(videoRef);
+
   const [completedWords, setCompletedWords] = useState<string[]>([]);
   const [ableSubmit, setAbleSubmit] = useState(false);
   const [isPointerVisible, setIsPointerVisible] = useState(false);
   const [isInteractionEnabled, setIsInteractionEnabled] = useState(false);
+
+  const [mousePos, setMousePos] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
 
   const handleWordComplete = (word: string) => {
     setCompletedWords((prev) => [...prev, word]);
@@ -98,6 +106,19 @@ export default function Gaze() {
     setCompletedWords([]);
   };
 
+  // ✅ 마우스 위치 추적
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
+  // ✅ SidePanel Cursor Toggle
   useEffect(() => {
     chrome.runtime.onMessage.addListener((message) => {
       if (message.action === 'showSidePanelCursor') {
@@ -111,6 +132,7 @@ export default function Gaze() {
     });
   }, []);
 
+  // ✅ Gaze 비활성화 시 이동
   useEffect(() => {
     if (!isGazeActive) {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -125,6 +147,7 @@ export default function Gaze() {
     }
   }, [isGazeActive, navigate]);
 
+  // ✅ Dwell 클릭 로직 (gaze는 유지됨)
   useEffect(() => {
     if (!gazePos) return;
 
@@ -155,31 +178,22 @@ export default function Gaze() {
     };
   }, [gazePos, lastGazePos, dwellTimer, simulateClick]);
 
+  // ✅ Interaction 영역 클릭 효과
   useEffect(() => {
-    if (!isInteractionEnabled || !gazePos) return;
+    if (!isInteractionEnabled) return;
 
-    const panelRect = document.body.getBoundingClientRect();
-    const isInPanel =
-      gazePos.x >= panelRect.left &&
-      gazePos.x <= panelRect.right &&
-      gazePos.y >= panelRect.top &&
-      gazePos.y <= panelRect.bottom;
+    const el = document.elementFromPoint(mousePos.x, mousePos.y);
 
-    if (isInPanel) {
-      const x = gazePos.x - panelRect.left;
-      const y = gazePos.y - panelRect.top;
+    createClickEffect(mousePos.x, mousePos.y);
 
-      const el = document.elementFromPoint(x, y);
-      createClickEffect(x, y);
-
-      if (el) {
-        el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      } else {
-        console.warn('[SidePanel] 클릭할 요소가 없음');
-      }
+    if (el) {
+      el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    } else {
+      console.warn('[SidePanel] 클릭할 요소가 없음');
     }
-  }, [gazePos, isInteractionEnabled]);
+  }, [mousePos, isInteractionEnabled]);
 
+  // ✅ Submit 활성화 상태 감지
   useEffect(() => {
     const listener = (message: any) => {
       if (message?.type === 'UPDATE_SUBMIT_STATE') {
@@ -195,10 +209,11 @@ export default function Gaze() {
 
   return (
     <>
+      <GlobalStyle />
       <GazePointer
         visible={isPointerVisible}
-        x={gazePos?.x || 0}
-        y={gazePos?.y || 0}
+        x={mousePos.x} // ✅ 실제 마우스 좌표로 변경
+        y={mousePos.y}
       />
       <S.StyledVideo ref={videoRef} autoPlay muted playsInline />
       {isLoading ? (

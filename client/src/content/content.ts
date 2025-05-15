@@ -154,13 +154,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   // Gaze 좌표 업데이트
   if (message.action === 'updateGazePosition') {
-    if (!pointer) pointer = createGazePointer();
-    if (pointer && message.gazeData) {
-      const { x, y } = message.gazeData;
-      pointer.style.left = `${x}px`;
-      pointer.style.top = `${y}px`;
-      checkScrollArea(y);
-    }
+    // if (!pointer) pointer = createGazePointer();
+    // if (pointer && message.gazeData) {
+    //   const { x, y } = message.gazeData;
+    //   pointer.style.left = `${x}px`;
+    //   pointer.style.top = `${y}px`;
+    //   checkScrollArea(y);
+    // }
     sendResponse({ status: 'position updated' });
     return true;
   }
@@ -299,6 +299,16 @@ document.addEventListener('focusout', (e) => {
   }
 });
 
+document.addEventListener('mousemove', (e) => {
+  if (!pointer) pointer = createGazePointer();
+
+  pointer.style.left = `${e.clientX}px`;
+  pointer.style.top = `${e.clientY}px`;
+
+  // 스크롤 체크도 유지
+  checkScrollArea(e.clientY);
+});
+
 function injectMicrophonePermissionIframe() {
   const iframe = document.createElement('iframe');
   iframe.hidden = true;
@@ -316,3 +326,27 @@ function injectCameraPermissionIframe() {
   iframe.src = chrome.runtime.getURL('cameraPermission/index.html');
   document.body.appendChild(iframe);
 }
+
+const style = document.createElement('style');
+style.textContent = `
+body, * {
+  cursor: none !important;
+}
+
+input, textarea, button, select, a {
+  cursor: none !important;
+}
+
+button:hover, a:hover, input:hover, textarea:hover, select:hover {
+  cursor: none !important;
+}
+
+button:active, a:active, input:active, textarea:active, select:active {
+  cursor: none !important;
+}
+
+button:focus, a:focus, input:focus, textarea:focus, select:focus {
+  cursor: none !important;
+}
+`;
+document.head.appendChild(style);

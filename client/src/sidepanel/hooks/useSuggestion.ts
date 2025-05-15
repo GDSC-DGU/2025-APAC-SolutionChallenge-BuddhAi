@@ -6,7 +6,7 @@ const dummyPhrases = [
   // 'Show me the latest news articles',
   // 'Open Gmail',
   'Google',
-  
+  'Youtube',
 ];
 
 const fuse = new Fuse(dummyPhrases, {
