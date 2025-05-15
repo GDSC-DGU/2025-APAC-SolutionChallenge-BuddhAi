@@ -2,9 +2,11 @@ import { useMemo } from 'react';
 import Fuse from 'fuse.js';
 
 const dummyPhrases = [
-  "Send an email to asw4ever@naver.com with the subject 'Hi' and message 'How are you'",
-  'Show me the latest news articles',
-  'Open Gmail',
+  // "Send an email to asw4ever@naver.com with the subject 'Hi' and message 'How are you'",
+  // 'Show me the latest news articles',
+  // 'Open Gmail',
+  'Google',
+  
 ];
 
 const fuse = new Fuse(dummyPhrases, {

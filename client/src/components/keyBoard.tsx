@@ -1,30 +1,38 @@
 import { useState } from 'react';
 import { TextChar, StyledInput } from './keyBoard.styles';
+import { useSuggestion } from '../sidepanel/hooks/useSuggestion';
+
 type CircularSelectorProps = {
   onWordComplete?: (word: string) => void;
 };
+
 const groups = [
   [
+    '@',
     '+',
     '-',
     '*',
     ...Array.from({ length: 13 }, (_, i) => String.fromCharCode(65 + i)),
   ],
   [
+    '@',
     '+',
     '-',
     '*',
     ...Array.from({ length: 13 }, (_, i) => String.fromCharCode(78 + i)),
   ],
-  ['+', '-', '*', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+  ['@', '+', '-', '*', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
 ];
 
 export default function CircularSelector({
   onWordComplete,
 }: CircularSelectorProps) {
   const [groupIndex, setGroupIndex] = useState(0);
-  const currentGroup = groups[groupIndex];
   const [inputValue, setInputValue] = useState('');
+  const currentGroup = groups[groupIndex];
+
+  // 🔽 추천어 가져오기
+  const suggestion = useSuggestion(inputValue);
 
   const handleCharClick = (char: string) => {
     if (char === '*') {
@@ -34,6 +42,12 @@ export default function CircularSelector({
     } else if (char === '+') {
       if (inputValue.trim()) {
         onWordComplete?.(inputValue);
+        setInputValue('');
+      }
+    } else if (char === '@') {
+      // 🔽 @ 클릭 시 추천어 확정
+      if (suggestion && suggestion !== inputValue) {
+        onWordComplete?.(suggestion);
         setInputValue('');
       }
     } else {
@@ -72,13 +86,15 @@ export default function CircularSelector({
         </linearGradient>
       </defs>
 
-      {/* 중앙 입력창 */}
-      <foreignObject x={centerX - 40} y={centerY - 20} width={80} height={40}>
-        <StyledInput
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-        />
+      <foreignObject x={centerX - 40} y={centerY - 15} width={80} height={40}>
+        {suggestion && suggestion !== inputValue && (
+          <StyledInput>
+            <span>{inputValue}</span>
+            <span style={{ color: 'rgba(9, 112, 231, 0.61)' }}>
+              {suggestion.slice(inputValue.length)}
+            </span>
+          </StyledInput>
+        )}
       </foreignObject>
 
       {/* 문자 버튼들 */}
@@ -89,7 +105,7 @@ export default function CircularSelector({
 
         return (
           <TextChar
-            key={char}
+            key={`${char}-${idx}`}
             x={x}
             y={y}
             onClick={() => handleCharClick(char)}

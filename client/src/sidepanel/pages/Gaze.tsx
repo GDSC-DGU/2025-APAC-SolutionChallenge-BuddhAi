@@ -19,6 +19,7 @@ export default function Gaze() {
   const [completedWords, setCompletedWords] = useState<string[]>([]);
   const [ableSubmit, setAbleSubmit] = useState(false);
   const [isPointerVisible, setIsPointerVisible] = useState(false);
+  const [isInteractionEnabled, setIsInteractionEnabled] = useState(false);
 
   const handleWordComplete = (word: string) => {
     setCompletedWords((prev) => [...prev, word]);
@@ -101,9 +102,11 @@ export default function Gaze() {
     chrome.runtime.onMessage.addListener((message) => {
       if (message.action === 'showSidePanelCursor') {
         setIsPointerVisible(true);
+        setIsInteractionEnabled(true);
       }
       if (message.action === 'hideSidePanelCursor') {
         setIsPointerVisible(false);
+        setIsInteractionEnabled(false);
       }
     });
   }, []);
@@ -153,7 +156,7 @@ export default function Gaze() {
   }, [gazePos, lastGazePos, dwellTimer, simulateClick]);
 
   useEffect(() => {
-    if (!gazePos) return;
+    if (!isInteractionEnabled || !gazePos) return;
 
     const panelRect = document.body.getBoundingClientRect();
     const isInPanel =
@@ -175,7 +178,7 @@ export default function Gaze() {
         console.warn('[SidePanel] 클릭할 요소가 없음');
       }
     }
-  }, [gazePos]);
+  }, [gazePos, isInteractionEnabled]);
 
   useEffect(() => {
     const listener = (message: any) => {

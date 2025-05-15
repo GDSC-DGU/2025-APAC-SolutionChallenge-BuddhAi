@@ -16,10 +16,8 @@ export const TextChar = styled.text`
   }
 `;
 
-export const StyledInput = styled.input`
-  width: 100%;
-  height: 100%;
-  font-size: 1rem;
+export const StyledInput = styled.div`
+  font-size: 1.2rem;
   text-align: center;
   border: none;
   font-family: var(--font-main);

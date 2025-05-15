@@ -184,28 +184,28 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   if (message.action === 'performClick') {
-    console.log('[ContentScript] performClick 메시지 수신됨');
-
-    if (pointer) {
-      const x = parseInt(pointer.style.left, 10);
-      const y = parseInt(pointer.style.top, 10);
-
-      // 클릭 효과를 일단 발생시킴 (위치에 관계없이)
-      createClickEffect(x, y);
-
-      const el = document.elementFromPoint(x, y);
-      if (el) {
-        if (el instanceof HTMLElement) {
-          el.click();
-        } else {
-          el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        }
-      } else {
-        console.warn('[ContentScript] 클릭 위치에 요소가 없음');
-      }
-    } else {
-      console.warn('[ContentScript] pointer가 null임');
+    if (!pointer || pointer.style.display === 'none') {
+      sendResponse({ status: 'ignored (cursor hidden)' });
+      return true;
     }
+
+    const x = parseInt(pointer.style.left, 10);
+    const y = parseInt(pointer.style.top, 10);
+    createClickEffect(x, y);
+
+    const el = document.elementFromPoint(x, y);
+    if (el instanceof HTMLElement) {
+      el.click();
+      sendResponse({ status: 'clicked' });
+    } else if (el) {
+      el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      sendResponse({ status: 'clicked (dispatched)' });
+    } else {
+      console.warn('[ContentScript] 클릭 위치에 요소가 없음');
+      sendResponse({ status: 'no element at point' });
+    }
+
+    return true;
   }
 
   if (message.action === 'insertInputValue' && message.value) {
