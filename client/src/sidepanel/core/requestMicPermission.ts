@@ -1,6 +1,6 @@
 import { useVoiceStore } from '../../store/voiceStore';
-// import { onPermissionGranted } from '../../handlers/onPermissionGranted';
-// import { startAudioRecording } from '../hooks/useAudioRecorder';
+import { onPermissionGranted } from '../../handlers/onPermissionGranted';
+import { startAudioRecording } from '../hooks/useAudioRecorder';
 
 export const requestMicPermission = () => {
   const url = chrome.runtime.getURL('permission/index.html');
@@ -14,7 +14,7 @@ export const requestMicPermission = () => {
     if (message.type === 'PERMISSION_GRANTED') {
       console.log('[Permission] 권한 허용됨');
       setIsRecognizing(true);
-      // onPermissionGranted(); // 별도 파일로 분리된 로직 실행
+      onPermissionGranted();
     } else if (message.type === 'PERMISSION_DENIED') {
       console.warn('[Permission] 권한 거부됨');
       alert('마이크 권한이 필요합니다.');
@@ -37,9 +37,9 @@ export const requestMicPermission = () => {
         if (message.type === 'PERMISSION_GRANTED') {
           console.log('[Permission] 권한 허용됨. 음성인식 시작');
           setIsRecognizing(true);
-          // startAudioRecording((file: File) => {
-          //   console.log('Audio recording completed:', file);
-          // }); // 또는 기존 onPermissionGranted()
+          startAudioRecording((file: File) => {
+            console.log('Audio recording completed:', file);
+          }); // 또는 기존 onPermissionGranted()
         } else if (message.type === 'PERMISSION_DENIED') {
           alert('마이크 권한이 필요합니다.');
           setIsRecognizing(false);
