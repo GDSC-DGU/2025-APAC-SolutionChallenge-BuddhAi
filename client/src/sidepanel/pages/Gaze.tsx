@@ -99,6 +99,10 @@ export default function Gaze() {
   };
 
   useEffect(() => {
+    chrome.runtime.sendMessage({ action: 'REQUEST_CAMERA_FROM_SIDEPANEL' });
+  }, []);
+
+  useEffect(() => {
     chrome.runtime.onMessage.addListener((message) => {
       if (message.action === 'showSidePanelCursor') {
         setIsPointerVisible(true);

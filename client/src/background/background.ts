@@ -1,6 +1,4 @@
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('확장 프로그램 설치됨 ✅');
-
   chrome.sidePanel.setPanelBehavior({
     openPanelOnActionClick: true,
   });
@@ -15,7 +13,7 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'FROM_POPUP') {
     console.log('[Background] 팝업 메시지 수신:', message.message);
 
@@ -37,19 +35,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tabId = tabs[0]?.id;
       if (tabId) {
-        chrome.scripting.executeScript(
-          {
-            target: { tabId },
-            files: ['content.js'],
-          },
-          () => {
-            if (chrome.runtime.lastError) {
-              sendResponse({ status: 'injection failed' });
-            } else {
-              sendResponse({ status: 'injected' });
-            }
-          }
-        );
+        chrome.scripting.executeScript({
+          target: { tabId },
+          files: ['content.js'],
+        });
       }
     });
     return true;
@@ -136,5 +125,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       }
     });
     chrome.runtime.sendMessage({ action: 'showSidePanelCursor' });
+  }
+
+  if (message.action === 'REQUEST_CAMERA_FROM_SIDEPANEL') {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: 'INJECT_PERMISSION_IFRAME',
+        });
+      }
+    });
   }
 });

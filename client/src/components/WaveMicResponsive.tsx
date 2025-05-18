@@ -71,7 +71,9 @@ export default function WaveMicResponsive() {
         if (volume > threshold && !isCurrentlyRecording) {
           console.log('[녹음 시작]');
           setRecording(true);
-          startAudioRecording();
+          startAudioRecording((commandFile: File) => {
+            console.log('녹음 완료된 파일:', commandFile);
+          });
 
           startSTT((text) => setSpokenText(text));
 

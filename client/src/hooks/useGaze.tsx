@@ -8,7 +8,6 @@ export function useGaze(videoRef: React.RefObject<HTMLVideoElement | null>) {
 
   const initWebGazer = async () => {
     try {
-      // content script 주입
       await new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({ action: 'ensureContentScript' }, (res) => {
           if (chrome.runtime.lastError) {
@@ -19,17 +18,6 @@ export function useGaze(videoRef: React.RefObject<HTMLVideoElement | null>) {
         });
       });
 
-      // 카메라 스트림 연결
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 640 }, height: { ideal: 480 } },
-      });
-
-      if (!videoRef.current) throw new Error('비디오 요소를 찾을 수 없습니다.');
-      videoRef.current.srcObject = stream;
-      await videoRef.current.play();
-      setStatus('카메라 연결');
-
-      // webgazer 스크립트 삽입 또는 재사용
       const existingScript = document.getElementById('webgazer-script');
       if (existingScript) {
         startTracking();
@@ -93,7 +81,6 @@ export function useGaze(videoRef: React.RefObject<HTMLVideoElement | null>) {
           visible: true,
         });
 
-        // 스크롤 기능 활성화
         chrome.tabs.sendMessage(tabs[0].id, {
           action: 'toggleScrolling',
           enabled: isScrollingEnabled,
@@ -125,7 +112,6 @@ export function useGaze(videoRef: React.RefObject<HTMLVideoElement | null>) {
             visible: false,
           });
 
-          // 스크롤 기능 비활성화
           chrome.tabs.sendMessage(tabs[0].id, {
             action: 'toggleScrolling',
             enabled: false,
@@ -135,7 +121,6 @@ export function useGaze(videoRef: React.RefObject<HTMLVideoElement | null>) {
     }
   };
 
-  // 스크롤 기능 토글
   const toggleScrolling = (enabled: boolean) => {
     setIsScrollingEnabled(enabled);
 
@@ -150,24 +135,30 @@ export function useGaze(videoRef: React.RefObject<HTMLVideoElement | null>) {
   };
 
   useEffect(() => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]?.id) {
-        chrome.tabs.sendMessage(
-          tabs[0].id,
-          {
-            action: 'injectCameraPermissionIframe',
-          },
-          (response) => {
-            console.log('Camera permission iframe response:', response);
+    const handleMessage = async (event: MessageEvent) => {
+      if (event.data?.type === 'CAMERA_STREAM_GRANTED') {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 640 }, height: { ideal: 480 } },
+          });
+
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            await videoRef.current.play();
+            setStatus('카메라 연결');
+            await initWebGazer();
           }
-        );
+        } catch (err) {
+          setStatus(`스트림 연결 실패: ${(err as Error).message}`);
+        }
       }
-    });
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
   }, []);
 
   useEffect(() => {
-    initWebGazer();
-
     return () => {
       const webgazer = (window as any).webgazer;
       if (webgazer?.end) webgazer.end();

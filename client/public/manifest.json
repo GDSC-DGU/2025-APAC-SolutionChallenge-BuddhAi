@@ -14,7 +14,7 @@
   "side_panel": {
     "default_path": "sidepanel.html"
   },
-  "permissions": ["sidePanel", "tabs", "scripting", "activeTab"],
+  "permissions": ["offscreen", "sidePanel", "tabs", "scripting", "activeTab"],
   "background": {
     "service_worker": "background.js"
   },
@@ -27,7 +27,14 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["icons/cursor.svg", "icons/loading.gif"],
+      "resources": [
+        "icons/cursor.svg",
+        "icons/loading.gif",
+        "cameraPermission/index.html",
+        "cameraPermission/requestPermission.js",
+        "permission/index.html",
+        "permission/requestPermission.js"
+      ],
       "matches": ["<all_urls>"]
     }
   ]
