@@ -26,7 +26,7 @@
      </td>
     </tr>
     <tr>
-	<td> 역할 </td>
+	<td>역할</td>
 	<td>
 		<p align="center">CLIENT</p>
 	</td>
