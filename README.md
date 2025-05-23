@@ -48,6 +48,10 @@
 
 ## **🚀 How to Install & Register the Extension**
 
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Install%20Now-blue?logo=googlechrome)](https://chromewebstore.google.com/detail/mind-cursor-hands-free-we/aeanihhdocdfclginogajgmdkbfofhoa)
+
+Mind Cursor를 지금 바로 크롬에 설치해보세요!  
+웹 접근성을 혁신적으로 향상시키는 핸즈프리 웹 컨트롤러입니다.
   
 
 ### **1. Clone the Repository**
